@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>메이플스토리 길드원 관리</title>
+</head>
+<body>
+    <h1>메이플스토리 길드원 관리</h1>
+    <form id="guildForm">
+        api키 입력 : <input type="text" id="apiKey" placeholder="API Key 입력"> <a href="https://openapi.nexon.com/ko/" target="_blank">넥슨 api키 발급받기(넥슨공식홈페이지)</a>
+        <br>
+        <br>
+        <select id="server" name="server">
+            <option value="스카니아">스카니아</option>
+            <option value="베라">베라</option>
+            <option value="루나">루나</option>
+            <option value="제니스">제니스</option>
+            <option value="크로아">크로아</option>
+            <option value="유니온">유니온</option>
+            <option value="엘리시움">엘리시움</option>
+            <option value="이노시스">이노시스</option>
+            <option value="레드">레드</option>
+            <option value="오로라">오로라</option>
+            <option value="아케인">아케인</option>
+            <option value="노바">노바</option>
+            <option value="에오스">에오스</option>
+            <option value="헬리오스">헬리오스</option>
+        </select>
+        <input type="text" id="guildName" name="guildName" placeholder="길드명 입력">
+        <button type="submit">검색</button>
+    </form>
+    <div id="result"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
