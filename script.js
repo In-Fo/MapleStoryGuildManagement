@@ -117,8 +117,6 @@ async function checkCharacterProgress(apiKey, ocid) {
 }
 
 async function start(apiKey, server, guildName, resultDiv, date) {
-    const isChecked = document.getElementById('switch').checked;
-    toggleCharacterImages(isChecked);
     try {
         resultDiv.innerHTML = "<br>길드 정보를 불러오는 중...";
         const guildData = await fetchWithApiKey(`${BASE_URL}/guild/id?guild_name=${guildName}&world_name=${server}`, apiKey);
