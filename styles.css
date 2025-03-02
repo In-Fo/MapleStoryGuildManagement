@@ -15,6 +15,7 @@
 .main-character {
     font-weight: bold;
     font-size: 1.2em;
+    text-align: center;
     margin-bottom: 5px;
 }
 
@@ -26,4 +27,17 @@
 
 .sub-characters {
     font-size: 0.9em;
+    text-align: center;
+}
+.checkbox-container {
+    display: flex;
+    align-items: center;
+}
+#guildForm {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+#guildForm > * {
+    margin-right: 10px;
 }
