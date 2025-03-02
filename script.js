@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.getElementById('guildForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
     const apiKey = document.getElementById('apiKey').value;
     const server = document.getElementById('server').value;
     const guildName = document.getElementById('guildName').value;
@@ -37,12 +36,34 @@ async function fetchWithApiKey(url, apiKey) {
     });
     return response.ok ? response.json() : null;
 }
+async function getCharacterRanking(apiKey, ocid, date) {
+    const data = await fetchWithApiKey(`${BASE_URL}/ranking/overall?date=${date}&ocid=${ocid}`, apiKey);
+    return data?.ranking?.[0];
+}
 
+async function checkCharacterProgress(apiKey, ocid) {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+
+    const yesterdayData = await getCharacterRanking(apiKey, ocid, yesterday.toJSON().slice(0, 10));
+    const thirtyDaysAgoData = await getCharacterRanking(apiKey, ocid, thirtyDaysAgo.toJSON().slice(0, 10));
+
+    if (!yesterdayData || !thirtyDaysAgoData) return '--';
+
+    if (yesterdayData.character_level > thirtyDaysAgoData.character_level ||
+        yesterdayData.character_exp > thirtyDaysAgoData.character_exp) {
+        return '▲';
+    }
+
+    return '--';
+}
 const ocidCache = {};
 
 async function findChrOcid(apiKey, chrName) {
     if (ocidCache[chrName]) return ocidCache[chrName];
-
     const data = await fetchWithApiKey(`${BASE_URL}/id?character_name=${chrName}`, apiKey);
     if (data && data.ocid) {
         ocidCache[chrName] = data.ocid;
@@ -64,15 +85,39 @@ async function findMainCharacter(apiKey, chrOcid, server, date) {
 }
 
 async function findGuild(apiKey, chrOcid, date) {
-    if (!chrOcid) return "길드 없음";
+    if (!chrOcid) return "길드x";
     const data = await fetchWithApiKey(`${BASE_URL}/character/basic?ocid=${chrOcid}&date=${date}`, apiKey);
-    return data?.character_guild_name || "길드 없음";
+    return data?.character_guild_name || "길드x";
+}
+
+async function getCharacterRanking(apiKey, ocid, date) {
+    const data = await fetchWithApiKey(`${BASE_URL}/ranking/overall?date=${date}&ocid=${ocid}`, apiKey);
+    return data?.ranking?.[0];
+}
+
+async function checkCharacterProgress(apiKey, ocid) {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+
+    const yesterdayData = await getCharacterRanking(apiKey, ocid, yesterday.toJSON().slice(0, 10));
+    const thirtyDaysAgoData = await getCharacterRanking(apiKey, ocid, thirtyDaysAgo.toJSON().slice(0, 10));
+
+    if (!yesterdayData || !thirtyDaysAgoData) return '--';
+
+    if (yesterdayData.character_level > thirtyDaysAgoData.character_level ||
+        yesterdayData.character_exp > thirtyDaysAgoData.character_exp) {
+        return '▲';
+    }
+
+    return '--';
 }
 
 async function start(apiKey, server, guildName, resultDiv, date) {
     try {
         resultDiv.innerHTML = "길드 정보를 불러오는 중...";
-
         const guildData = await fetchWithApiKey(`${BASE_URL}/guild/id?guild_name=${guildName}&world_name=${server}`, apiKey);
         if (!guildData?.oguild_id) {
             resultDiv.innerHTML = "길드를 찾을 수 없습니다.";
@@ -86,86 +131,71 @@ async function start(apiKey, server, guildName, resultDiv, date) {
         }
 
         let processedMembers = {};
-        let multiGuildMembers = [];
+let multiGuildMembers = {};
 
-        const memberPromises = members.map(async (member) => {
-            try {
-                const crrChrOcid = await findChrOcid(apiKey, member);
-                if (!crrChrOcid) return null;
+const memberPromises = members.map(async (member) => {
+    try {
+        const crrChrOcid = await findChrOcid(apiKey, member);
+        if (!crrChrOcid) return null;
+        const mainChr = await findMainCharacter(apiKey, crrChrOcid, server, date);
+        if (mainChr === -1) return null;
+        const mainGuild = await findGuild(apiKey, await findChrOcid(apiKey, mainChr), date);
+        const progressIndicator = await checkCharacterProgress(apiKey, crrChrOcid);
 
-                const mainChr = await findMainCharacter(apiKey, crrChrOcid, server, date);
-                if (mainChr === -1) return null;
-
-                const mainGuild = await findGuild(apiKey, await findChrOcid(apiKey, mainChr), date);
-
-                if (guildName !== mainGuild) {
-                    multiGuildMembers.push({ 
-                        currentCharacter: member, 
-                        mainCharacter: mainChr, 
-                        guild: mainGuild 
-                    });
-                    return null;
-                }
-
-                if (!(mainChr in processedMembers)) {
-                    processedMembers[mainChr] = [];
-                }
-                if (member !== mainChr) {
-                    processedMembers[mainChr].push(member);
-                }
-            } catch (error) {
-                console.error(`Error processing ${member}:`, error);
-            }
-        });
-
-        await Promise.all(memberPromises);
-
-        let output = `<br><h3 style="display:inline;">본캐 - 부캐 목록</h3>&nbsp;&nbsp;본캐 기준 실질 길드원 : ${Object.keys(processedMembers).length}명<br><br><div class='character-grid'>`;
-
-        for (const [mainChar, subChars] of Object.entries(processedMembers)) {
-            output += `
-                <div class="character-card">
-                    <div class="main-character"><a href="https://meaegi.com/s/${mainChar}" target="_blank" style="color:black; text-decoration:none;">${mainChar}</a></div>
-                    <hr>
-                    <div class="sub-characters">
-                        ${subChars.length > 0 
-                            ? subChars.map(subChar => `<div><a href="https://meaegi.com/s/${subChar}" target="_blank" style="color:black; text-decoration:none;">${subChar}</a></div>`).join('')
-                            : '<div>x</div>'}
-                    </div>
-                </div>
-            `;
-        }
-
-        output += '</div><h3>이중길드 목록</h3><div class="character-grid">';
-
-        let groupedMultiGuildMembers = {};
-        multiGuildMembers.forEach(entry => {
-            if (!groupedMultiGuildMembers[entry.mainCharacter]) {
-                groupedMultiGuildMembers[entry.mainCharacter] = {
-                    guild: entry.guild,
+        if (guildName !== mainGuild) {
+            if (!multiGuildMembers[mainChr]) {
+                multiGuildMembers[mainChr] = {
+                    guild: mainGuild,
                     characters: []
                 };
             }
-            groupedMultiGuildMembers[entry.mainCharacter].characters.push(entry.currentCharacter);
-        });
-
-        for (const [mainChar, data] of Object.entries(groupedMultiGuildMembers)) {
-            output += `
-                <div class="character-card">
-                    <div class="main-character"><a href="https://meaegi.com/s/${mainChar}" target="_blank" style="color:black; text-decoration:none;">${mainChar}</a> (${data.guild})</div>
-                    <hr>
-                    <div class="sub-characters">
-                        ${data.characters.map(char => `<div><a href="https://meaegi.com/s/${char}" target="_blank" style="color:black; text-decoration:none;">${char}</a></div>`).join('')}
-                    </div>
-                </div>
-            `;
+            multiGuildMembers[mainChr].characters.push(`${member}${progressIndicator}`);
+        } else {
+            if (!processedMembers[mainChr]) {
+                processedMembers[mainChr] = [];
+            }
+            if (member !== mainChr) {
+                processedMembers[mainChr].push(`${member}${progressIndicator}`);
+            }
         }
+    } catch (error) {
+        console.error(`Error processing ${member}:`, error);
+    }
+});
 
-        output += '</div>';
-        resultDiv.innerHTML = output;
+await Promise.all(memberPromises);
 
+let output = `<h2>길드: ${guildName}</h2>
+<div class="character-grid">`;
+
+for (const [mainChar, subChars] of Object.entries(processedMembers)) {
+    const mainProgressIndicator = await checkCharacterProgress(apiKey, await findChrOcid(apiKey, mainChar));
+    output += `
+    <div class="character-card">
+        <div class="main-character"><a href="https://meaegi.com/s/${mainChar}" target="_blank" style="color:black; text-decoration:none;">${mainChar}</a>${mainProgressIndicator}</div>
+        <hr>
+        <div class="sub-characters">
+            ${subChars.length > 0 ? subChars.map(char => `<a href="https://meaegi.com/s/${char.replace('▲', '')}" target="_blank" style="color:black; text-decoration:none;">${char}</a>`).join('<br>') : 'x'}
+        </div>
+    </div>`;
+}
+output += "</div><h3>이중길드 목록</h3><div class='character-grid'>"
+for (const [mainChar, info] of Object.entries(multiGuildMembers)) {
+    output += `
+    <div class="character-card">
+        <div class="main-character"><a href="https://meaegi.com/s/${mainChar}" target="_blank" style="color:black; text-decoration:none;">${mainChar}</a> (${info.guild})</div>
+        <hr>
+        <div class="sub-characters">
+            ${info.characters.map(char => `<a href="https://meaegi.com/s/${char.replace('▲', '')}" target="_blank" style="color:black; text-decoration:none;">${char}</a>`).join('<br>')}
+        </div>
+    </div>`;
+}
+
+output += `</div>`;
+
+resultDiv.innerHTML = output;
     } catch (error) {
         console.error('Error:', error);
-        resultDiv.innerHTML = '오류가 발생했습니다. 다시 시도해주세요.';
+        resultDiv.innerHTML = "오류가 발생했습니다. 콘솔을 확인하세요.";
     }
 }
