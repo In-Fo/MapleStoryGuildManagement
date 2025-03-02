@@ -105,14 +105,14 @@ async function checkCharacterProgress(apiKey, ocid) {
     const yesterdayData = await getCharacterRanking(apiKey, ocid, yesterday.toJSON().slice(0, 10));
     const thirtyDaysAgoData = await getCharacterRanking(apiKey, ocid, thirtyDaysAgo.toJSON().slice(0, 10));
 
-    if (!yesterdayData || !thirtyDaysAgoData) return '--';
+    if (!yesterdayData || !thirtyDaysAgoData) return ' --';
 
     if (yesterdayData.character_level > thirtyDaysAgoData.character_level ||
         yesterdayData.character_exp > thirtyDaysAgoData.character_exp) {
-        return '▲';
+        return '';
     }
 
-    return '--';
+    return ' --';
 }
 
 async function start(apiKey, server, guildName, resultDiv, date) {
@@ -174,7 +174,7 @@ for (const [mainChar, subChars] of Object.entries(processedMembers)) {
         <div class="main-character"><a href="https://meaegi.com/s/${mainChar}" target="_blank" style="color:black; text-decoration:none;">${mainChar}</a>${mainProgressIndicator}</div>
         <hr>
         <div class="sub-characters">
-            ${subChars.length > 0 ? subChars.map(char => `<a href="https://meaegi.com/s/${char.replace('▲', '')}" target="_blank" style="color:black; text-decoration:none;">${char}</a>`).join('<br>') : 'x'}
+            ${subChars.length > 0 ? subChars.map(char => `<a href="https://meaegi.com/s/${char.replace(' --', '')}" target="_blank" style="color:black; text-decoration:none;">${char}</a>`).join('<br>') : 'x'}
         </div>
     </div>`;
 }
@@ -185,7 +185,7 @@ for (const [mainChar, info] of Object.entries(multiGuildMembers)) {
         <div class="main-character"><a href="https://meaegi.com/s/${mainChar}" target="_blank" style="color:black; text-decoration:none;">${mainChar}</a> (${info.guild})</div>
         <hr>
         <div class="sub-characters">
-            ${info.characters.map(char => `<a href="https://meaegi.com/s/${char.replace('▲', '')}" target="_blank" style="color:black; text-decoration:none;">${char}</a>`).join('<br>')}
+            ${info.characters.map(char => `<a href="https://meaegi.com/s/${char.replace(' --', '')}" target="_blank" style="color:black; text-decoration:none;">${char}</a>`).join('<br>')}
         </div>
     </div>`;
 }
