@@ -8,8 +8,9 @@
 </head>
 <body>
     <h1>메이플스토리 길드원 관리</h1>
+    
+    api키 입력 : <input type="text" id="apiKey" placeholder="API Key 입력"> <a href="https://openapi.nexon.com/ko/" target="_blank">넥슨 api키 발급받기(넥슨공식홈페이지)</a>
     <form id="guildForm">
-        api키 입력 : <input type="text" id="apiKey" placeholder="API Key 입력"> <a href="https://openapi.nexon.com/ko/" target="_blank">넥슨 api키 발급받기(넥슨공식홈페이지)</a>
         <br>
         <br>
         <select id="server" name="server">
@@ -26,10 +27,14 @@
             <option value="아케인">아케인</option>
             <option value="노바">노바</option>
             <option value="에오스">에오스</option>
-            <option value="헬리오스">헬리오스</option>
+            <option value="핼리오스">핼리오스</option>
         </select>
         <input type="text" id="guildName" name="guildName" placeholder="길드명 입력">
         <button type="submit">검색</button>
+        <div class="checkbox-container">
+            <input type="checkbox" id="switch" checked>
+            <label for="switch">본캐 코디 표시</label>
+        </div>
     </form>
     <div id="result"></div>
     <br>
