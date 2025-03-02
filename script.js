@@ -91,6 +91,11 @@ async function findGuild(apiKey, chrOcid, date) {
     return data?.character_guild_name || "길드x";
 }
 
+async function getCharacterRanking(apiKey, ocid, date) {
+    const data = await fetchWithApiKey(`${BASE_URL}/ranking/overall?date=${date}&ocid=${ocid}`, apiKey);
+    return data?.ranking?.[0];
+}
+
 async function checkCharacterProgress(apiKey, ocid) {
     const today = new Date();
     const yesterday = new Date(today);
@@ -113,9 +118,8 @@ async function checkCharacterProgress(apiKey, ocid) {
 
 async function start(apiKey, server, guildName, resultDiv, date) {
     const isChecked = document.getElementById('switch').checked;
-    toggleCharacterImages(isChecked);
+    let counter = 0;
     try {
-        resultDiv.innerHTML = "<br>길드 정보를 불러오는 중...";
         const guildData = await fetchWithApiKey(`${BASE_URL}/guild/id?guild_name=${guildName}&world_name=${server}`, apiKey);
         if (!guildData?.oguild_id) {
             resultDiv.innerHTML = "길드를 찾을 수 없습니다.";
@@ -131,17 +135,21 @@ async function start(apiKey, server, guildName, resultDiv, date) {
         let processedMembers = {};
         let multiGuildMembers = {};
 
-        const memberPromises = members.map(async (member) => {
+        for (const member of members) {
             try {
+                counter++;
+                resultDiv.innerHTML = `<br>길드 정보를 불러오는 중... ${counter}/${members.length}`;
                 const crrChrOcid = await findChrOcid(apiKey, member);
-                if (!crrChrOcid) return null;
+                if (!crrChrOcid) continue;
+                
                 const mainChr = await findMainCharacter(apiKey, crrChrOcid, server, date);
+                if (mainChr === -1) continue;
+                
                 const mainChrOcid = await findChrOcid(apiKey, mainChr);
                 const mainChrImg = await getCharImg(apiKey, mainChrOcid, date);
-                if (mainChr === -1) return null;
-                const mainGuild = await findGuild(apiKey, await findChrOcid(apiKey, mainChr), date);
+                const mainGuild = await findGuild(apiKey, mainChrOcid, date);
                 const progressIndicator = await checkCharacterProgress(apiKey, crrChrOcid);
-        
+                
                 if (guildName !== mainGuild) {
                     if (!multiGuildMembers[mainChr]) {
                         multiGuildMembers[mainChr] = {
@@ -159,17 +167,13 @@ async function start(apiKey, server, guildName, resultDiv, date) {
                     }
                 }
             } catch (error) {
-                console.error(`${member} 오류발생 :`, error);
+                console.error(`${member} 오류 발생:`, error);
             }
-        });
-
-        await Promise.all(memberPromises);
-
-        let output = `<h3>${guildName}길드 정보 </h3><p>본캐 기준 실질 길드원 : ${Object.keys(processedMembers).length}명</p><div class="character-grid">`;
-        dp = 'none';
-        if (isChecked){
-            dp = 'block'
         }
+
+        let output = `<h3>${guildName} 길드 정보</h3><p>본캐 기준 실질 길드원: ${Object.keys(processedMembers).length}명</p><div class="character-grid">`;
+        let dp = isChecked ? 'block' : 'none';
+        
         for (const [mainChar, { subChars, img }] of Object.entries(processedMembers)) {
             output += `
             <div class="character-card">
@@ -183,7 +187,8 @@ async function start(apiKey, server, guildName, resultDiv, date) {
                 </div>
             </div>`;
         }
-        output += "</div><h3>이중길드 목록</h3><div class='character-grid'>"
+        
+        output += "</div><h3>이중길드 목록</h3><div class='character-grid'>";
         for (const [mainChar, info] of Object.entries(multiGuildMembers)) {
             output += `
             <div class="character-card">
@@ -195,7 +200,7 @@ async function start(apiKey, server, guildName, resultDiv, date) {
             </div>`;
         }
 
-        output += `</div>`;
+        output += "</div>";
         resultDiv.innerHTML = output;
     } 
     catch (error) {
