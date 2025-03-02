@@ -2,16 +2,24 @@ const BASE_URL = 'https://open.api.nexon.com/maplestory/v1';
 
 document.getElementById('switch').addEventListener('change', function () {
     const showImages = this.checked;
-    document.querySelectorAll('.character-img').forEach(img => {
-        img.style.display = showImages ? 'block' : 'none';
-    });
+    localStorage.setItem('showCharacterImages', showImages);
+    toggleCharacterImages(showImages);
 });
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('apiKey').value = localStorage.getItem('apiKey') || '';
     document.getElementById('server').value = localStorage.getItem('server') || '스카니아';
     document.getElementById('guildName').value = localStorage.getItem('guildName') || '';
+    const isChecked = localStorage.getItem('showCharacterImages') !== 'false';
+    document.getElementById('switch').checked = isChecked;
+    toggleCharacterImages(isChecked);
 });
+
+function toggleCharacterImages(show) {
+    document.querySelectorAll('.character-img').forEach(img => {
+        img.style.display = show ? 'block' : 'none';
+    });
+}
 
 document.getElementById('guildForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -109,6 +117,8 @@ async function checkCharacterProgress(apiKey, ocid) {
 }
 
 async function start(apiKey, server, guildName, resultDiv, date) {
+    const isChecked = document.getElementById('switch').checked;
+    toggleCharacterImages(isChecked);
     try {
         resultDiv.innerHTML = "<br>길드 정보를 불러오는 중...";
         const guildData = await fetchWithApiKey(`${BASE_URL}/guild/id?guild_name=${guildName}&world_name=${server}`, apiKey);
@@ -161,12 +171,15 @@ async function start(apiKey, server, guildName, resultDiv, date) {
         await Promise.all(memberPromises);
 
         let output = `<h3>${guildName}길드 정보 </h3><p>본캐 기준 실질 길드원 : ${Object.keys(processedMembers).length}명</p><div class="character-grid">`;
-
+        dp = 'none';
+        if (isChecked){
+            dp = 'block'
+        }
         for (const [mainChar, { subChars, img }] of Object.entries(processedMembers)) {
             output += `
             <div class="character-card">
                 <div class="main-character">
-                    <img src="${img}" alt="${mainChar}" class="character-img" style="width:100px; height:auto; display:block; margin: 0 auto;">
+                    <img src="${img}" alt="${mainChar}" class="character-img" style="width:100px; display:${dp}; height:auto; margin: 0 auto;">
                     <a href="https://meaegi.com/s/${mainChar}" target="_blank" style="color:black; text-decoration:none; align:center;">${mainChar}</a>
                 </div>
                 <hr>
@@ -188,7 +201,6 @@ async function start(apiKey, server, guildName, resultDiv, date) {
         }
 
         output += `</div>`;
-
         resultDiv.innerHTML = output;
     } 
     catch (error) {
