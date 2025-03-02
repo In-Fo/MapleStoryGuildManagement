@@ -41,25 +41,6 @@ async function getCharacterRanking(apiKey, ocid, date) {
     return data?.ranking?.[0];
 }
 
-async function checkCharacterProgress(apiKey, ocid) {
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(today.getDate() - 30);
-
-    const yesterdayData = await getCharacterRanking(apiKey, ocid, yesterday.toJSON().slice(0, 10));
-    const thirtyDaysAgoData = await getCharacterRanking(apiKey, ocid, thirtyDaysAgo.toJSON().slice(0, 10));
-
-    if (!yesterdayData || !thirtyDaysAgoData) return '--';
-
-    if (yesterdayData.character_level > thirtyDaysAgoData.character_level ||
-        yesterdayData.character_exp > thirtyDaysAgoData.character_exp) {
-        return '▲';
-    }
-
-    return '--';
-}
 const ocidCache = {};
 
 async function findChrOcid(apiKey, chrName) {
@@ -105,10 +86,10 @@ async function checkCharacterProgress(apiKey, ocid) {
     const yesterdayData = await getCharacterRanking(apiKey, ocid, yesterday.toJSON().slice(0, 10));
     const thirtyDaysAgoData = await getCharacterRanking(apiKey, ocid, thirtyDaysAgo.toJSON().slice(0, 10));
 
-    if (!yesterdayData || !thirtyDaysAgoData) return ' --';
+    if (!yesterdayData || !thirtyDaysAgoData) return '';
 
-    if (yesterdayData.character_level > thirtyDaysAgoData.character_level ||
-        yesterdayData.character_exp > thirtyDaysAgoData.character_exp) {
+    if (yesterdayData.character_level != thirtyDaysAgoData.character_level ||
+        yesterdayData.character_exp != thirtyDaysAgoData.character_exp) {
         return '';
     }
 
