@@ -91,11 +91,6 @@ async function findGuild(apiKey, chrOcid, date) {
     return data?.character_guild_name || "길드x";
 }
 
-async function getCharacterRanking(apiKey, ocid, date) {
-    const data = await fetchWithApiKey(`${BASE_URL}/ranking/overall?date=${date}&ocid=${ocid}`, apiKey);
-    return data?.ranking?.[0];
-}
-
 async function checkCharacterProgress(apiKey, ocid) {
     const today = new Date();
     const yesterday = new Date(today);
