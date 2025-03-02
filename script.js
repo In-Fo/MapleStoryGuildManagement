@@ -117,7 +117,7 @@ async function checkCharacterProgress(apiKey, ocid) {
 
 async function start(apiKey, server, guildName, resultDiv, date) {
     try {
-        resultDiv.innerHTML = "길드 정보를 불러오는 중...";
+        resultDiv.innerHTML = "<br>길드 정보를 불러오는 중...";
         const guildData = await fetchWithApiKey(`${BASE_URL}/guild/id?guild_name=${guildName}&world_name=${server}`, apiKey);
         if (!guildData?.oguild_id) {
             resultDiv.innerHTML = "길드를 찾을 수 없습니다.";
@@ -165,8 +165,7 @@ const memberPromises = members.map(async (member) => {
 
 await Promise.all(memberPromises);
 
-let output = `<h2>길드: ${guildName}</h2>
-<div class="character-grid">`;
+let output = `<h3>${guildName}길드 정보 </h3><p>본캐 기준 실질 길드원 : ${Object.keys(processedMembers).length}명</p><div class="character-grid">`;
 
 for (const [mainChar, subChars] of Object.entries(processedMembers)) {
     const mainProgressIndicator = await checkCharacterProgress(apiKey, await findChrOcid(apiKey, mainChar));
@@ -196,6 +195,6 @@ output += `</div>`;
 resultDiv.innerHTML = output;
     } catch (error) {
         console.error('Error:', error);
-        resultDiv.innerHTML = "오류가 발생했습니다. 콘솔을 확인하세요.";
+        resultDiv.innerHTML = "오류가 발생했습니다.";
     }
 }
