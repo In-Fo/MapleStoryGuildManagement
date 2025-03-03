@@ -112,6 +112,10 @@ async function checkCharacterProgress(apiKey, ocid) {
 }
 
 async function start(apiKey, server, guildName, resultDiv, date) {
+    if (apiKey.startsWith("test")) {
+        resultDiv.innerHTML = "개발단계의 API 키를 입력하셨습니다.<br>개발단계의 API 키는 요청 횟수 제한으로 인해 원활한 서비스가 불가능합니다. 서비스 단계의 API 키를 발급받아서 이용해주세요.";
+        return;
+    }
     const isChecked = document.getElementById('switch').checked;
     let counter = 0;
 
