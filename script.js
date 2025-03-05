@@ -187,6 +187,7 @@ async function start(apiKey, server, guildName, resultDiv, date) {
                 <div class="main-character">
                     <img src="${img}" alt="${mainChar}" class="character-img" style="width:100px; display:${dp}; height:auto; margin: 0 auto;">
                     <a href="https://meaegi.com/s/${mainChar}" target="_blank" style="color:black; text-decoration:none;">${mainChar}</a>
+                    <p style="font-size:0.7em; margin-top: 0px; margin-bottom: 0px;">부캐 수 : ${subChars.length}</p>
                 </div>
                 <hr>
                 <div class="sub-characters">
