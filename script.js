@@ -138,7 +138,7 @@ async function start(apiKey, server, guildName, resultDiv, date) {
         for (const member of members) {
             try {
                 counter++;
-                resultDiv.innerHTML = `<br>길드원 정보를 불러오는 중... ${counter}/${members.length}`;
+                resultDiv.innerHTML = `<br>길드원 정보를 불러오는 중...<br>${counter}/${members.length}`;
 
                 const crrChrOcid = await findChrOcid(apiKey, member);
                 if (!crrChrOcid) continue;
