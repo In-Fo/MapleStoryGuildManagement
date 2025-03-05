@@ -118,7 +118,7 @@ async function start(apiKey, server, guildName, resultDiv, date) {
     }
     const isChecked = document.getElementById('switch').checked;
     let counter = 0;
-
+    
     try {
         const guildData = await fetchWithApiKey(`${BASE_URL}/guild/id?guild_name=${guildName}&world_name=${server}`, apiKey);
         if (!guildData?.oguild_id) {
@@ -138,7 +138,7 @@ async function start(apiKey, server, guildName, resultDiv, date) {
         for (const member of members) {
             try {
                 counter++;
-                resultDiv.innerHTML = `<br>길드 정보를 불러오는 중... ${counter}/${members.length}`;
+                resultDiv.innerHTML = `<br>길드원 정보를 불러오는 중... ${counter}/${members.length}`;
 
                 const crrChrOcid = await findChrOcid(apiKey, member);
                 if (!crrChrOcid) continue;
