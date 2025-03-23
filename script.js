@@ -151,7 +151,7 @@ async function start(apiKey, server, guildName, resultDiv, date) {
                 if (mainChr === -1) continue;
 
                 const mainChrOcid = await findChrOcid(apiKey, mainChr);
-
+                const mainChrProgress = await checkCharacterProgress(apiKey, mainChrOcid);
                 const [mainChrImg, mainGuild] = await Promise.all([
                     getCharImg(apiKey, mainChrOcid, date),
                     findGuild(apiKey, mainChrOcid, date)
@@ -167,7 +167,7 @@ async function start(apiKey, server, guildName, resultDiv, date) {
                     multiGuildMembers[mainChr].characters.push(`${member}${progressIndicator}`);
                 } else {
                     if (!processedMembers[mainChr]) {
-                        processedMembers[mainChr] = { subChars: [], img: mainChrImg };
+                        processedMembers[mainChr] = { subChars: [], img: mainChrImg, status: mainChrProgress};
                     }
                     if (member !== mainChr) {
                         processedMembers[mainChr].subChars.push(`${member}${progressIndicator}`);
@@ -181,12 +181,12 @@ async function start(apiKey, server, guildName, resultDiv, date) {
         let output = `<h3>${guildName} 길드 정보</h3><p>본캐 기준 실질 길드원: ${Object.keys(processedMembers).length}명</p><div class="character-grid">`;
         let dp = isChecked ? 'block' : 'none';
 
-        for (const [mainChar, { subChars, img }] of Object.entries(processedMembers)) {
+        for (const [mainChar, { subChars, img, status}] of Object.entries(processedMembers)) {
             output += `
             <div class="character-card">
                 <div class="main-character">
                     <img src="${img}" alt="${mainChar}" class="character-img" style="width:100px; display:${dp}; height:auto; margin: 0 auto;">
-                    <a href="https://meaegi.com/s/${mainChar}" target="_blank" style="color:black; text-decoration:none;">${mainChar}</a>
+                    <a href="https://meaegi.com/s/${mainChar}" target="_blank" style="color:black; text-decoration:none;">${mainChar}${status}</a>
                     <p style="font-size:0.7em; margin-top: 0px; margin-bottom: 0px;">부캐 수 : ${subChars.length}</p>
                 </div>
                 <hr>
